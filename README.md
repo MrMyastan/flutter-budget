@@ -5,3 +5,4 @@
 - [ ] better scrolling
 - [ ] tab control
 - [ ] budget item view
+- [ ] sorting
