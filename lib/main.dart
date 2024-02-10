@@ -1,4 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+enum Direction { cost, benefit }
+
+class Transaction {
+  Direction direction;
+  DateTime date;
+  String name;
+
+  Transaction(this.direction, this.date, this.name);
+}
 
 void main() {
   runApp(const MyApp());
@@ -13,103 +24,154 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const Home(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+class Home extends StatefulWidget {
+  const Home({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<Home> createState() => _HomeState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomeState extends State<Home> {
+  List<Transaction> transactions = [];
 
-  void _incrementCounter() {
+  void _addTransaction(Transaction newTransaction) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      transactions.add(newTransaction);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+        appBar: AppBar(
+          title: Text(widget.title),
         ),
+        body: Center(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+              TransactionMaker(onAdded: _addTransaction),
+              Text("${transactions.length}"),
+              DataTable(
+                  columns: const <DataColumn>[
+                    DataColumn(label: Text("Name")),
+                    DataColumn(label: Text("Direction")),
+                    DataColumn(label: Text("Date"))
+                  ],
+                  rows: transactions
+                      .map((e) => DataRow(cells: <DataCell>[
+                            DataCell(Text(e.name)),
+                            DataCell(Text(
+                                e.direction == Direction.cost ? "out" : "in")),
+                            DataCell(
+                                Text(DateFormat('yyyy-MM-dd').format(e.date)))
+                          ]))
+                      .toList())
+            ])));
+  }
+}
+
+class TransactionMaker extends StatefulWidget {
+  const TransactionMaker({super.key, required this.onAdded});
+
+  final Function(Transaction) onAdded;
+
+  @override
+  State<TransactionMaker> createState() => _TransactionMakerState();
+}
+
+class _TransactionMakerState extends State<TransactionMaker> {
+  Direction transDirection = Direction.cost;
+  String _name = "";
+  final dateController = TextEditingController(
+      text: DateFormat('yyyy-MM-dd').format(DateTime.now()));
+  List<Transaction> transactions = [];
+  DateTime date = DateTime.now();
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is removed from the
+    // widget tree.
+    dateController.dispose();
+    super.dispose();
+  }
+
+  void _setDirection(Direction? value) {
+    if (value != null) {
+      setState(() {
+        transDirection = value;
+      });
+    }
+  }
+
+  void _setString(String name) {
+    setState(() {
+      _name = name;
+    });
+  }
+
+  void _addTransaction() {
+    Transaction transaction = Transaction(transDirection, date, _name);
+    widget.onAdded(transaction);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        children: [
+          TextField(
+            onChanged: _setString,
+            decoration: const InputDecoration(
+                border: OutlineInputBorder(), labelText: "Transaction Name"),
+          ),
+          TextField(
+            controller: dateController,
+            decoration: const InputDecoration(
+                border: OutlineInputBorder(), labelText: "Date"),
+            readOnly: true,
+            onTap: () async {
+              DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(), //get today's date
+                  firstDate: DateTime(
+                      2000), //DateTime.now() - not to allow to choose before today.
+                  lastDate: DateTime(2101));
+
+              if (pickedDate != null) {
+                String formattedDate = DateFormat('yyyy-MM-dd').format(
+                    pickedDate); // format date in required form here we use yyyy-MM-dd that means time is removed
+
+                setState(() {
+                  dateController.text = formattedDate;
+                  date = pickedDate; //set foratted date to TextField value.
+                });
+              }
+            },
+          ),
+          DropdownMenu(
+            dropdownMenuEntries: const <DropdownMenuEntry<Direction>>[
+              DropdownMenuEntry(value: Direction.benefit, label: "In"),
+              DropdownMenuEntry(value: Direction.cost, label: "Out")
+            ],
+            onSelected: _setDirection,
+            label: const Text("Direction"),
+            enableSearch: false,
+            requestFocusOnTap: false,
+            initialSelection: Direction.cost,
+          ),
+          TextButton(onPressed: _addTransaction, child: const Text("Add"))
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
