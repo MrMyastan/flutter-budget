@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.green,
       ),
       home: const Home(title: 'Flutter Demo Home Page'),
     );
@@ -55,28 +55,24 @@ class _HomeState extends State<Home> {
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: Center(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-              TransactionMaker(onAdded: _addTransaction),
-              Text("${transactions.length}"),
-              DataTable(
-                  columns: const <DataColumn>[
-                    DataColumn(label: Text("Name")),
-                    DataColumn(label: Text("Direction")),
-                    DataColumn(label: Text("Date"))
-                  ],
-                  rows: transactions
-                      .map((e) => DataRow(cells: <DataCell>[
-                            DataCell(Text(e.name)),
-                            DataCell(Text(
-                                e.direction == Direction.cost ? "out" : "in")),
-                            DataCell(
-                                Text(DateFormat('yyyy-MM-dd').format(e.date)))
-                          ]))
-                      .toList())
-            ])));
+        body: ListView(children: <Widget>[
+          TransactionMaker(onAdded: _addTransaction),
+          DataTable(
+              sortColumnIndex: 0,
+              columns: const <DataColumn>[
+                DataColumn(label: Text("Name")),
+                DataColumn(label: Text("Direction")),
+                DataColumn(label: Text("Date"))
+              ],
+              rows: transactions
+                  .map((e) => DataRow(cells: <DataCell>[
+                        DataCell(Text(e.name)),
+                        DataCell(
+                            Text(e.direction == Direction.cost ? "out" : "in")),
+                        DataCell(Text(DateFormat('yyyy-MM-dd').format(e.date)))
+                      ]))
+                  .toList())
+        ]));
   }
 }
 
@@ -127,50 +123,103 @@ class _TransactionMakerState extends State<TransactionMaker> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Column(
-        children: [
-          TextField(
-            onChanged: _setString,
-            decoration: const InputDecoration(
-                border: OutlineInputBorder(), labelText: "Transaction Name"),
-          ),
-          TextField(
-            controller: dateController,
-            decoration: const InputDecoration(
-                border: OutlineInputBorder(), labelText: "Date"),
-            readOnly: true,
-            onTap: () async {
-              DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(), //get today's date
-                  firstDate: DateTime(
-                      2000), //DateTime.now() - not to allow to choose before today.
-                  lastDate: DateTime(2101));
+      color: Theme.of(context).primaryColorDark,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(5)),
+              child: Padding(
+                padding: const EdgeInsets.all(1.0),
+                child: TextField(
+                  onChanged: _setString,
+                  decoration: const InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    labelText: "Transaction Name",
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 8.0),
+            Container(
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(5)),
+              child: Padding(
+                padding: const EdgeInsets.all(1.0),
+                child: TextField(
+                  controller: dateController,
+                  decoration: const InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    labelText: "Date",
+                    border: InputBorder.none,
+                  ),
+                  readOnly: true,
+                  onTap: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(), //get today's date
+                        firstDate: DateTime(
+                            2000), //DateTime.now() - not to allow to choose before today.
+                        lastDate: DateTime(2101));
 
-              if (pickedDate != null) {
-                String formattedDate = DateFormat('yyyy-MM-dd').format(
-                    pickedDate); // format date in required form here we use yyyy-MM-dd that means time is removed
+                    if (pickedDate != null) {
+                      String formattedDate = DateFormat('yyyy-MM-dd').format(
+                          pickedDate); // format date in required form here we use yyyy-MM-dd that means time is removed
 
-                setState(() {
-                  dateController.text = formattedDate;
-                  date = pickedDate; //set foratted date to TextField value.
-                });
-              }
-            },
-          ),
-          DropdownMenu(
-            dropdownMenuEntries: const <DropdownMenuEntry<Direction>>[
-              DropdownMenuEntry(value: Direction.benefit, label: "In"),
-              DropdownMenuEntry(value: Direction.cost, label: "Out")
-            ],
-            onSelected: _setDirection,
-            label: const Text("Direction"),
-            enableSearch: false,
-            requestFocusOnTap: false,
-            initialSelection: Direction.cost,
-          ),
-          TextButton(onPressed: _addTransaction, child: const Text("Add"))
-        ],
+                      setState(() {
+                        dateController.text = formattedDate;
+                        date =
+                            pickedDate; //set foratted date to TextField value.
+                      });
+                    }
+                  },
+                ),
+              ),
+            ),
+            SizedBox(height: 8.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(5)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(1.0),
+                    child: DropdownMenu(
+                      dropdownMenuEntries: const <DropdownMenuEntry<Direction>>[
+                        DropdownMenuEntry(
+                            value: Direction.benefit, label: "In"),
+                        DropdownMenuEntry(value: Direction.cost, label: "Out")
+                      ],
+                      onSelected: _setDirection,
+                      label: const Text("Direction"),
+                      enableSearch: false,
+                      requestFocusOnTap: false,
+                      initialSelection: Direction.cost,
+                      inputDecorationTheme: Theme.of(context)
+                          .inputDecorationTheme
+                          .copyWith(
+                              fillColor: Colors.white,
+                              filled: true,
+                              border: InputBorder.none),
+                    ),
+                  ),
+                ),
+                Container(
+                  color: Colors.white,
+                  child: TextButton(
+                      onPressed: _addTransaction, child: const Text("Add")),
+                ),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }
