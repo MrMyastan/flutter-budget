@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -7,8 +9,19 @@ class Transaction {
   Direction direction;
   DateTime date;
   String name;
+  int id;
 
-  Transaction(this.direction, this.date, this.name);
+  Transaction(this.direction, this.date, this.name, this.id);
+}
+
+class IdIncrement {
+  int _i = 0;
+  IdIncrement([this._i = 0]);
+
+  int get i {
+    _i++;
+    return _i - 1;
+  }
 }
 
 void main() {
@@ -41,7 +54,11 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<Transaction> transactions = [];
+  SplayTreeSet<Transaction> transactions = SplayTreeSet((a, b) {
+    int dateComparison = b.date.compareTo(a.date);
+    int idComparison = b.id - a.id;
+    return dateComparison != 0 ? dateComparison : idComparison;
+  });
 
   void _addTransaction(Transaction newTransaction) {
     setState(() {
@@ -90,8 +107,8 @@ class _TransactionMakerState extends State<TransactionMaker> {
   String _name = "";
   final dateController = TextEditingController(
       text: DateFormat('yyyy-MM-dd').format(DateTime.now()));
-  List<Transaction> transactions = [];
   DateTime date = DateTime.now();
+  int id = 0;
 
   @override
   void dispose() {
@@ -116,7 +133,10 @@ class _TransactionMakerState extends State<TransactionMaker> {
   }
 
   void _addTransaction() {
-    Transaction transaction = Transaction(transDirection, date, _name);
+    Transaction transaction = Transaction(transDirection, date, _name, id);
+    setState(() {
+      id++;
+    });
     widget.onAdded(transaction);
   }
 
