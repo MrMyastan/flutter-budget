@@ -5,4 +5,6 @@
 - [ ] better scrolling
 - [ ] tab control
 - [ ] budget item view
-- [ ] sorting
+- [x] sorting
+- [ ] sorting options
+- [ ] better ids
