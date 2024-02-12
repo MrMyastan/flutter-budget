@@ -1,17 +1,21 @@
 import 'dart:collection';
 
+import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 enum Direction { cost, benefit }
 
 class Transaction {
+  num amount;
   Direction direction;
+  String formattedAmount;
   DateTime date;
   String name;
   int id;
 
-  Transaction(this.direction, this.date, this.name, this.id);
+  Transaction(this.amount, this.formattedAmount, this.direction, this.date,
+      this.name, this.id);
 }
 
 class IdIncrement {
@@ -78,14 +82,19 @@ class _HomeState extends State<Home> {
               sortColumnIndex: 0,
               columns: const <DataColumn>[
                 DataColumn(label: Text("Name")),
-                DataColumn(label: Text("Direction")),
+                DataColumn(label: Text("Amount")),
                 DataColumn(label: Text("Date"))
               ],
               rows: transactions
                   .map((e) => DataRow(cells: <DataCell>[
                         DataCell(Text(e.name)),
-                        DataCell(
-                            Text(e.direction == Direction.cost ? "out" : "in")),
+                        DataCell(Text(
+                          e.formattedAmount,
+                          style: TextStyle(
+                              color: e.direction == Direction.cost
+                                  ? Colors.red
+                                  : Colors.green),
+                        )),
                         DataCell(Text(DateFormat('yyyy-MM-dd').format(e.date)))
                       ]))
                   .toList())
@@ -109,6 +118,8 @@ class _TransactionMakerState extends State<TransactionMaker> {
       text: DateFormat('yyyy-MM-dd').format(DateTime.now()));
   DateTime date = DateTime.now();
   int id = 0;
+  final CurrencyTextInputFormatter _formatter =
+      CurrencyTextInputFormatter(enableNegative: false);
 
   @override
   void dispose() {
@@ -133,7 +144,8 @@ class _TransactionMakerState extends State<TransactionMaker> {
   }
 
   void _addTransaction() {
-    Transaction transaction = Transaction(transDirection, date, _name, id);
+    Transaction transaction = Transaction(_formatter.getUnformattedValue(),
+        _formatter.getFormattedValue(), transDirection, date, _name, id);
     setState(() {
       id++;
     });
@@ -159,6 +171,25 @@ class _TransactionMakerState extends State<TransactionMaker> {
                     filled: true,
                     fillColor: Colors.white,
                     labelText: "Transaction Name",
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 8.0),
+            Container(
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(5)),
+              child: Padding(
+                padding: const EdgeInsets.all(1.0),
+                child: TextField(
+                  inputFormatters: [_formatter],
+                  keyboardType: TextInputType.numberWithOptions(
+                      signed: true, decimal: false),
+                  decoration: const InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    labelText: "Amount",
                     border: InputBorder.none,
                   ),
                 ),
