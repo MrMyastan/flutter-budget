@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 enum Direction { cost, benefit }
 
 class Transaction {
-  num amount;
+  double amount;
   Direction direction;
   String formattedAmount;
   DateTime date;
@@ -72,12 +72,32 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    double accountBalance = transactions.fold(
+        0.0,
+        (previousValue, element) =>
+            previousValue +
+            (element.amount * (element.direction == Direction.cost ? -1 : 1)));
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.title),
         ),
         body: ListView(children: <Widget>[
           TransactionMaker(onAdded: _addTransaction),
+          Center(
+            child: RichText(
+                text: TextSpan(
+                    style: Theme.of(context).textTheme.headlineMedium,
+                    children: [
+                  TextSpan(text: "Account Balance: "),
+                  TextSpan(
+                      style: TextStyle(
+                          color: accountBalance.isNegative
+                              ? Colors.red
+                              : Colors.green),
+                      text:
+                          NumberFormat.simpleCurrency().format(accountBalance))
+                ])),
+          ),
           DataTable(
               sortColumnIndex: 0,
               columns: const <DataColumn>[
@@ -144,8 +164,13 @@ class _TransactionMakerState extends State<TransactionMaker> {
   }
 
   void _addTransaction() {
-    Transaction transaction = Transaction(_formatter.getUnformattedValue(),
-        _formatter.getFormattedValue(), transDirection, date, _name, id);
+    Transaction transaction = Transaction(
+        _formatter.getUnformattedValue().toDouble(),
+        _formatter.getFormattedValue(),
+        transDirection,
+        date,
+        _name,
+        id);
     setState(() {
       id++;
     });
