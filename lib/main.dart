@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.green,
+        colorSchemeSeed: Colors.green,
       ),
       home: const Home(title: 'Flutter Demo Home Page'),
     );
@@ -143,7 +143,7 @@ class _TransactionMakerState extends State<TransactionMaker> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Theme.of(context).primaryColorDark,
+      color: Theme.of(context).colorScheme.primary,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
