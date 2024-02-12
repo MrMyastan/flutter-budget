@@ -213,7 +213,7 @@ class _TransactionMakerState extends State<TransactionMaker> {
                   onTap: () async {
                     DateTime? pickedDate = await showDatePicker(
                         context: context,
-                        initialDate: DateTime.now(), //get today's date
+                        initialDate: date, //get today's date
                         firstDate: DateTime(
                             2000), //DateTime.now() - not to allow to choose before today.
                         lastDate: DateTime(2101));
