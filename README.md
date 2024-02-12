@@ -1,4 +1,4 @@
-- [ ] currency input
+- [x] currency input
 - [ ] transaction search
 - [ ] transaction persistence
 - [ ] transaction editing
@@ -8,3 +8,6 @@
 - [x] sorting
 - [ ] sorting options
 - [ ] better ids
+- [ ] currency cymbols
+- [ ] more ergonomic currecny input
+- [ ] localization
