@@ -7,7 +7,11 @@ import 'package:intl/intl.dart';
 import 'transaction.dart';
 
 class TransactionsPage extends StatefulWidget {
-  const TransactionsPage({super.key});
+  const TransactionsPage(
+      {super.key, required this.navBar, required this.scaffoldKey});
+
+  final NavigationBar navBar;
+  final Key? scaffoldKey;
 
   @override
   State<TransactionsPage> createState() => _TransactionsPageState();
@@ -33,43 +37,47 @@ class _TransactionsPageState extends State<TransactionsPage> {
         (previousValue, element) =>
             previousValue +
             (element.amount * (element.direction == Direction.cost ? -1 : 1)));
-    return ListView(children: <Widget>[
-      TransactionMaker(onAdded: _addTransaction),
-      Center(
-        child: RichText(
-            text: TextSpan(
-                style: Theme.of(context).textTheme.headlineMedium,
-                children: [
-              TextSpan(text: "Account Balance: "),
-              TextSpan(
-                  style: TextStyle(
-                      color: accountBalance.isNegative
-                          ? Colors.red
-                          : Colors.green),
-                  text: NumberFormat.simpleCurrency().format(accountBalance))
-            ])),
-      ),
-      DataTable(
-          sortColumnIndex: 0,
-          columns: const <DataColumn>[
-            DataColumn(label: Text("Name")),
-            DataColumn(label: Text("Amount")),
-            DataColumn(label: Text("Date"))
-          ],
-          rows: transactions
-              .map((e) => DataRow(cells: <DataCell>[
-                    DataCell(Text(e.name)),
-                    DataCell(Text(
-                      e.formattedAmount,
-                      style: TextStyle(
-                          color: e.direction == Direction.cost
-                              ? Colors.red
-                              : Colors.green),
-                    )),
-                    DataCell(Text(DateFormat('yyyy-MM-dd').format(e.date)))
-                  ]))
-              .toList())
-    ]);
+    return Scaffold(
+      key: widget.scaffoldKey,
+      bottomNavigationBar: widget.navBar,
+      body: ListView(children: <Widget>[
+        TransactionMaker(onAdded: _addTransaction),
+        Center(
+          child: RichText(
+              text: TextSpan(
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  children: [
+                TextSpan(text: "Account Balance: "),
+                TextSpan(
+                    style: TextStyle(
+                        color: accountBalance.isNegative
+                            ? Colors.red
+                            : Colors.green),
+                    text: NumberFormat.simpleCurrency().format(accountBalance))
+              ])),
+        ),
+        DataTable(
+            sortColumnIndex: 0,
+            columns: const <DataColumn>[
+              DataColumn(label: Text("Name")),
+              DataColumn(label: Text("Amount")),
+              DataColumn(label: Text("Date"))
+            ],
+            rows: transactions
+                .map((e) => DataRow(cells: <DataCell>[
+                      DataCell(Text(e.name)),
+                      DataCell(Text(
+                        e.formattedAmount,
+                        style: TextStyle(
+                            color: e.direction == Direction.cost
+                                ? Colors.red
+                                : Colors.green),
+                      )),
+                      DataCell(Text(DateFormat('yyyy-MM-dd').format(e.date)))
+                    ]))
+                .toList())
+      ]),
+    );
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/categories_page.dart';
 
 import 'transactions_page.dart';
 
@@ -34,19 +35,6 @@ class MyApp extends StatelessWidget {
 
 class Home extends StatefulWidget {
   const Home({super.key});
-
-  final List<(Widget, NavigationDestination)> pages = const [
-    (
-      TransactionsPage(),
-      NavigationDestination(icon: Icon(Icons.data_array), label: "Transactions")
-    ),
-    (
-      TransactionsPage(),
-      NavigationDestination(
-          icon: Icon(Icons.bluetooth_searching_rounded), label: "Categories")
-    )
-  ];
-
   @override
   State<Home> createState() => HomeState();
 }
@@ -54,21 +42,39 @@ class Home extends StatefulWidget {
 class HomeState extends State<Home> {
   int index = 0;
 
+  final GlobalKey navBarKey = GlobalKey(debugLabel: "Nav Bar");
+  final GlobalKey scaffoldKey = GlobalKey(debugLabel: "Scaffold");
+
+  void _newDestination(int id) {
+    setState(() {
+      index = id;
+    });
+  }
+
+  NavigationBar navBar(int i) {
+    return NavigationBar(
+      key: i == index ? navBarKey : null,
+      destinations: const [
+        NavigationDestination(
+            icon: Icon(Icons.data_array), label: "Transactions"),
+        NavigationDestination(
+            icon: Icon(Icons.bluetooth_searching_rounded), label: "Categories"),
+      ],
+      onDestinationSelected: _newDestination,
+      selectedIndex: index,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    print((widget.pages[1].$1));
-    print(index);
-    return Scaffold(
-      body: widget.pages[index].$1,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (value) {
-          setState(() {
-            index = value;
-          });
-        },
-        destinations: widget.pages.map((e) => e.$2).toList(),
-      ),
+    return IndexedStack(
+      index: index,
+      children: [
+        TransactionsPage(
+            navBar: navBar(0), scaffoldKey: index == 0 ? scaffoldKey : null),
+        CategoriesPage(
+            navBar: navBar(1), scaffoldKey: index == 1 ? scaffoldKey : null)
+      ],
     );
   }
 }
